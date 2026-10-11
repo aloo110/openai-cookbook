@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>ALOYEKTA — Floating Menu Motion Demo</title>
+  <style>
+    :root{
+      --navy:#0E3576;
+      --ivory:#F4E7CB;
+      --magenta:#DA1A5C;
+      --closed-w:228px;
+      --closed-h:50px;
+      --hover-w:260px;
+      --open-w:270px;
+      --open-h:120px;
+      --surface:#0E3576;
+      --text:#fff;
+      --shadow:0 18px 44px rgba(14,53,118,.18),0 4px 14px rgba(14,53,118,.10);
+      --spring:cubic-bezier(.22,1,.36,1);
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:240vh;
+      background:#f7f4ee;
+      color:#172033;
+      font-family:Tahoma,"Segoe UI",sans-serif;
+      overflow-x:hidden;
+    }
+
+    .stage{
+      min-height:240vh;
+      position:relative;
+      background:
+        linear-gradient(to bottom,rgba(14,53,118,.018),rgba(14,53,118,0) 18%),
+        #f7f4ee;
+    }
+
+    .hint{
+      position:fixed;
+      left:22px;
+      bottom:18px;
+      z-index:3;
+      direction:rtl;
+      font-size:12px;
+      line-height:1.9;
+      color:rgba(23,32,51,.46);
+      user-select:none;
+      pointer-events:none;
+    }
+
+    .floating-frame{
+      position:fixed;
+      right:clamp(16px,2.2vw,34px);
+      top:50%;
+      width:var(--open-w);
+      height:var(--open-h);
+      transform:translate3d(0,-50%,0);
+      z-index:20;
+      pointer-events:none;
+      contain:layout paint style;
+      isolation:isolate;
+    }
+
+    .surface{
+      position:absolute;
+      right:0;
+      top:50%;
+      width:var(--open-w);
+      height:var(--open-h);
+      border:0;
+      background:var(--surface);
+      box-shadow:var(--shadow);
+      transform-origin:right center;
+      transform:translate3d(0,-50%,0) scale3d(calc(228 / 270),calc(50 / 120),1);
+      border-radius:20px 8px 20px 8px;
+      will-change:transform,border-radius,box-shadow;
+      backface-visibility:hidden;
+      transition:
+        transform 520ms var(--spring),
+        border-radius 520ms var(--spring),
+        box-shadow 320ms ease;
+      pointer-events:auto;
+      cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
+      touch-action:manipulation;
+    }
+
+    .floating-frame[data-hover="true"] .surface{
+      transform:translate3d(0,-50%,0) scale3d(calc(260 / 270),calc(50 / 120),1);
+    }
+
+    .floating-frame[data-open="true"] .surface{
+      transform:translate3d(0,-50%,0) scale3d(1,1,1);
+      border-radius:22px 8px 22px 8px;
+      box-shadow:0 22px 56px rgba(14,53,118,.22),0 7px 18px rgba(14,53,118,.11);
+    }
+
+    .closed-content,
+    .open-content{
+      position:absolute;
+      right:0;
+      top:50%;
+      color:var(--text);
+      pointer-events:none;
+      direction:rtl;
+    }
+
+    .closed-content{
+      width:var(--closed-w);
+      height:var(--closed-h);
+      transform:translate3d(0,-50%,0);
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      align-items:stretch;
+      opacity:1;
+      will-change:width,opacity,transform;
+      transition:
+        width 520ms var(--spring),
+        opacity 180ms ease,
+        transform 520ms var(--spring);
+    }
+
+    .floating-frame[data-hover="true"] .closed-content{width:var(--hover-w)}
+    .floating-frame[data-open="true"] .closed-content{
+      opacity:0;
+      transform:translate3d(8px,-50%,0) scale(.985);
+      transition-duration:170ms;
+    }
+
+    .quick-item{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:2px;
+      min-width:0;
+      white-space:nowrap;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:-.15px;
+      text-shadow:0 1px 0 rgba(0,0,0,.04);
+      transition:transform 420ms var(--spring),opacity 220ms ease;
+    }
+
+    .quick-item + .quick-item::before{
+      content:"";
+      position:absolute;
+      top:10px;
+      bottom:10px;
+      width:1px;
+      background:rgba(255,255,255,.16);
+      transform:translateX(57px);
+      opacity:.55;
+    }
+
+    .quick-item svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.65;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+    .open-content{
+      width:var(--open-w);
+      height:var(--open-h);
+      transform:translate3d(0,-50%,0) scale(.985);
+      opacity:0;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      padding:12px;
+      pointer-events:none;
+      will-change:opacity,transform;
+      transition:opacity 210ms ease,transform 520ms var(--spring);
+    }
+
+    .floating-frame[data-open="true"] .open-content{
+      opacity:1;
+      transform:translate3d(0,-50%,0) scale(1);
+      pointer-events:auto;
+      transition-delay:70ms,0ms;
+    }
+
+    .open-item{
+      border:0;
+      background:rgba(255,255,255,.085);
+      color:#fff;
+      border-radius:14px 6px 14px 6px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:7px;
+      font:700 12px Tahoma,"Segoe UI",sans-serif;
+      cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
+      transition:transform 260ms var(--spring),background-color 180ms ease;
+    }
+
+    .open-item:hover{transform:translate3d(0,-2px,0)}
+    .open-item:active{transform:translate3d(0,0,0) scale(.985)}
+    .open-item svg{width:24px;height:24px;stroke:currentColor;stroke-width:1.65;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+    .close-dot{
+      position:absolute;
+      left:12px;
+      top:10px;
+      width:24px;
+      height:24px;
+      border:0;
+      border-radius:50%;
+      background:transparent;
+      color:rgba(255,255,255,.72);
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+      pointer-events:auto;
+      opacity:0;
+      transform:scale(.8);
+      transition:opacity 180ms ease,transform 300ms var(--spring);
+    }
+
+    .floating-frame[data-open="true"] .close-dot{opacity:1;transform:scale(1)}
+    .close-dot svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round}
+
+    .probe{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      border-radius:24px;
+    }
+
+    @media (max-width:1023px){
+      :root{--closed-w:218px;--hover-w:230px}
+      .floating-frame{right:18px}
+    }
+
+    @media (max-width:767px){
+      :root{--closed-w:210px;--hover-w:222px}
+      .floating-frame{right:14px}
+      .hint{display:none}
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.001ms!important;animation-duration:.001ms!important;animation-iteration-count:1!important}
+    }
+
+    @media (prefers-color-scheme:dark){
+      body,.stage{background:#101a2a;color:#eef3fb}
+      :root{--surface:#fff;--text:#0E3576;--shadow:0 18px 44px rgba(0,0,0,.18),0 4px 14px rgba(0,0,0,.10)}
+      .open-item{background:rgba(14,53,118,.07);color:#0E3576}
+      .quick-item + .quick-item::before{background:rgba(14,53,118,.16)}
+      .close-dot{color:rgba(14,53,118,.68)}
+      .hint{color:rgba(255,255,255,.38)}
+    }
+  </style>
+</head>
+<body>
+  <main class="stage" aria-label="دموی منوی شناور الو یکتا">
+    <div class="hint">برای تست: اسکرول کن، روی منو برو، چندبار سریع باز و بسته کن.</div>
+
+    <aside class="floating-frame" id="floatingMenu" data-open="false" data-hover="false" aria-label="منوی شناور">
+      <button class="surface" id="menuSurface" type="button" aria-expanded="false" aria-controls="expandedMenu" aria-label="باز کردن منوی شناور"></button>
+
+      <div class="closed-content" aria-hidden="true">
+        <div class="quick-item">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M4.2 6.2l2.8 2.1M17 15.7l2.8 2.1M3 12h4M17 12h4M4.2 17.8 7 15.7M17 8.3l2.8-2.1"/><circle cx="12" cy="12" r="3.2"/></svg>
+          <span>انتخاب سریع</span>
+        </div>
+        <div class="quick-item">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10a4 4 0 0 1 4 4v1M17 4l3 3-3 3M17 17H7a4 4 0 0 1-4-4v-1M7 20l-3-3 3-3"/></svg>
+          <span>ترکیب خرید</span>
+        </div>
+      </div>
+
+      <div class="open-content" id="expandedMenu">
+        <button class="open-item" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M4.2 6.2l2.8 2.1M17 15.7l2.8 2.1M3 12h4M17 12h4M4.2 17.8 7 15.7M17 8.3l2.8-2.1"/><circle cx="12" cy="12" r="3.2"/></svg>
+          <span>انتخاب سریع</span>
+        </button>
+        <button class="open-item" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10a4 4 0 0 1 4 4v1M17 4l3 3-3 3M17 17H7a4 4 0 0 1-4-4v-1M7 20l-3-3 3-3"/></svg>
+          <span>ترکیب خرید</span>
+        </button>
+      </div>
+
+      <button class="close-dot" id="closeMenu" type="button" aria-label="بستن منو" tabindex="-1">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+      <div class="probe" aria-hidden="true"></div>
+    </aside>
+  </main>
+
+  <script>
+    (() => {
+      const frame = document.getElementById('floatingMenu');
+      const surface = document.getElementById('menuSurface');
+      const close = document.getElementById('closeMenu');
+      let open = false;
+      let hover = false;
+      let raf = 0;
+
+      const commit = () => {
+        raf = 0;
+        frame.dataset.open = String(open);
+        frame.dataset.hover = String(hover && !open);
+        surface.setAttribute('aria-expanded', String(open));
+        surface.setAttribute('aria-label', open ? 'بستن منوی شناور' : 'باز کردن منوی شناور');
+        close.tabIndex = open ? 0 : -1;
+      };
+
+      const schedule = () => {
+        if (raf) return;
+        raf = requestAnimationFrame(commit);
+      };
+
+      const setOpen = value => {
+        open = Boolean(value);
+        if (open) hover = false;
+        schedule();
+      };
+
+      surface.addEventListener('click', () => setOpen(!open));
+      close.addEventListener('click', event => {
+        event.stopPropagation();
+        setOpen(false);
+        surface.focus({preventScroll:true});
+      });
+
+      frame.addEventListener('pointerenter', event => {
+        if (event.pointerType !== 'touch' && !open) {
+          hover = true;
+          schedule();
+        }
+      }, {passive:true});
+
+      frame.addEventListener('pointerleave', event => {
+        if (event.pointerType !== 'touch') {
+          hover = false;
+          schedule();
+        }
+      }, {passive:true});
+
+      surface.addEventListener('pointerdown', event => {
+        if (event.pointerType === 'touch' && !open) {
+          hover = true;
+          schedule();
+        }
+      }, {passive:true});
+
+      surface.addEventListener('pointerup', event => {
+        if (event.pointerType === 'touch') {
+          hover = false;
+          schedule();
+        }
+      }, {passive:true});
+
+      surface.addEventListener('pointercancel', () => {
+        hover = false;
+        schedule();
+      }, {passive:true});
+
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && open) {
+          setOpen(false);
+          surface.focus({preventScroll:true});
+        }
+      });
+
+      document.addEventListener('pointerdown', event => {
+        if (open && !frame.contains(event.target)) setOpen(false);
+      }, {passive:true});
+
+      commit();
+    })();
+  </script>
+</body>
+</html>
