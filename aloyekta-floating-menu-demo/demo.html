@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ALOYEKTA Floating Menu Demo</title>
+<style>
+:root{
+  --navy:#0E3576;--magenta:#DA1A5C;--page:#f7f4ee;
+  --closed-w:228px;--closed-h:50px;--hover-w:260px;
+  --closed-sx:.844444;--hover-sx:.962963;--closed-sy:.416667;
+  --open-w:270px;--open-h:120px;
+  --surface:#0E3576;--ink:#fff;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:240vh;background:var(--page);font-family:Tahoma,"Segoe UI",sans-serif;overflow-x:hidden}
+.stage{min-height:240vh;background:linear-gradient(180deg,rgba(14,53,118,.018),transparent 22%),var(--page)}
+.hint{position:fixed;left:22px;bottom:18px;color:rgba(23,32,51,.45);font-size:12px;line-height:1.8;pointer-events:none;user-select:none}
+
+.floating-frame{
+  position:fixed;right:clamp(16px,2.2vw,34px);top:50%;z-index:40;
+  width:var(--open-w);height:var(--open-h);
+  transform:translate3d(0,-50%,0);
+  contain:layout paint style;isolation:isolate;pointer-events:none;
+}
+.surface{
+  position:absolute;right:0;top:50%;width:var(--open-w);height:var(--open-h);border:0;
+  background:var(--surface);box-shadow:0 18px 44px rgba(14,53,118,.18),0 4px 14px rgba(14,53,118,.10);
+  border-radius:8px 20px 8px 20px;
+  transform-origin:right center;
+  transform:translate3d(0,-50%,0) scale3d(var(--closed-sx),var(--closed-sy),1);
+  will-change:transform,border-radius,box-shadow;backface-visibility:hidden;
+  transition:transform 520ms var(--ease),border-radius 520ms var(--ease),box-shadow 320ms ease;
+  cursor:pointer;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+.surface:focus-visible{outline:2px solid var(--magenta);outline-offset:4px}
+.floating-frame[data-hover="true"] .surface{transform:translate3d(0,-50%,0) scale3d(var(--hover-sx),var(--closed-sy),1)}
+.floating-frame[data-open="true"] .surface{
+  transform:translate3d(0,-50%,0) scale3d(1,1,1);border-radius:8px 22px 8px 22px;
+  box-shadow:0 22px 56px rgba(14,53,118,.22),0 7px 18px rgba(14,53,118,.11)
+}
+
+.closed-content,.open-content{position:absolute;right:0;top:50%;direction:rtl;color:var(--ink);pointer-events:none}
+.closed-content{
+  width:var(--closed-w);height:var(--closed-h);transform:translate3d(0,-50%,0);
+  display:grid;grid-template-columns:1fr 1fr;align-items:stretch;opacity:1;
+  transition:width 520ms var(--ease),opacity 160ms ease,transform 520ms var(--ease)
+}
+.floating-frame[data-hover="true"] .closed-content{width:var(--hover-w)}
+.floating-frame[data-open="true"] .closed-content{opacity:0;transform:translate3d(6px,-50%,0) scale(.985);transition-duration:160ms}
+.quick-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0;white-space:nowrap;font-size:11px;font-weight:700;letter-spacing:-.15px}
+.quick-item+ .quick-item{border-inline-start:1px solid rgba(255,255,255,.16)}
+.quick-item svg,.open-item svg{fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+.quick-item svg{width:18px;height:18px}
+
+.open-content{
+  width:var(--open-w);height:var(--open-h);transform:translate3d(0,-50%,0) scale(.985);opacity:0;
+  display:grid;grid-template-columns:1fr 1fr;padding:12px 14px;transition:opacity 210ms ease,transform 520ms var(--ease)
+}
+.floating-frame[data-open="true"] .open-content{opacity:1;transform:translate3d(0,-50%,0) scale(1);pointer-events:auto;transition-delay:60ms,0ms}
+.open-item{border:0;background:transparent;color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font:700 12px Tahoma,"Segoe UI",sans-serif;cursor:pointer;transition:transform 260ms var(--ease);-webkit-tap-highlight-color:transparent}
+.open-item+ .open-item{border-inline-start:1px solid rgba(255,255,255,.16)}
+.open-item:hover{transform:translate3d(0,-2px,0)}
+.open-item:active{transform:translate3d(0,0,0) scale(.985)}
+.open-item:focus-visible{outline:2px solid var(--magenta);outline-offset:-3px;border-radius:8px}
+.open-item svg{width:24px;height:24px}
+.close-dot{position:absolute;left:10px;top:8px;width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:var(--ink);display:grid;place-items:center;opacity:0;transform:scale(.82);pointer-events:none;cursor:pointer;transition:opacity 170ms ease,transform 300ms var(--ease)}
+.floating-frame[data-open="true"] .close-dot{opacity:.72;transform:scale(1);pointer-events:auto}
+.close-dot:focus-visible{outline:2px solid var(--magenta);outline-offset:1px}
+.close-dot svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+
+@media(max-width:1023px){
+  :root{--closed-w:218px;--hover-w:230px;--closed-sx:.807407;--hover-sx:.851852}
+  .floating-frame{right:18px}
+}
+@media(max-width:767px){
+  :root{--closed-w:210px;--hover-w:222px;--closed-sx:.777778;--hover-sx:.822222}
+  .floating-frame{right:14px}.hint{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.001ms!important;animation-duration:.001ms!important;animation-iteration-count:1!important}
+}
+@media(prefers-color-scheme:dark){
+  :root{--page:#101a2a;--surface:#fff;--ink:#0E3576}
+  .hint{color:rgba(255,255,255,.38)}
+  .surface{box-shadow:0 18px 44px rgba(0,0,0,.18),0 4px 14px rgba(0,0,0,.10)}
+  .quick-item+ .quick-item,.open-item+ .open-item{border-inline-start-color:rgba(14,53,118,.16)}
+}
+</style>
+</head>
+<body>
+<main class="stage" aria-label="دموی منوی شناور الو یکتا">
+  <div class="hint">اسکرول کن، هاور کن و چندبار سریع باز و بسته کن.</div>
+  <aside class="floating-frame" id="floatingMenu" data-open="false" data-hover="false" aria-label="منوی شناور">
+    <button class="surface" id="menuSurface" type="button" aria-expanded="false" aria-controls="expandedMenu" aria-label="باز کردن منوی شناور"></button>
+
+    <div class="closed-content" aria-hidden="true">
+      <div class="quick-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M4.2 6.2l2.8 2.1M17 15.7l2.8 2.1M3 12h4M17 12h4M4.2 17.8 7 15.7M17 8.3l2.8-2.1"/><circle cx="12" cy="12" r="3.2"/></svg>
+        <span>انتخاب سریع</span>
+      </div>
+      <div class="quick-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10a4 4 0 0 1 4 4v1M17 4l3 3-3 3M17 17H7a4 4 0 0 1-4-4v-1M7 20l-3-3 3-3"/></svg>
+        <span>ترکیب خرید</span>
+      </div>
+    </div>
+
+    <div class="open-content" id="expandedMenu">
+      <button class="open-item" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M4.2 6.2l2.8 2.1M17 15.7l2.8 2.1M3 12h4M17 12h4M4.2 17.8 7 15.7M17 8.3l2.8-2.1"/><circle cx="12" cy="12" r="3.2"/></svg>
+        <span>انتخاب سریع</span>
+      </button>
+      <button class="open-item" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10a4 4 0 0 1 4 4v1M17 4l3 3-3 3M17 17H7a4 4 0 0 1-4-4v-1M7 20l-3-3 3-3"/></svg>
+        <span>ترکیب خرید</span>
+      </button>
+    </div>
+
+    <button class="close-dot" id="closeMenu" type="button" aria-label="بستن منو" tabindex="-1">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </aside>
+</main>
+<script>
+(()=>{
+  const frame=document.getElementById('floatingMenu');
+  const surface=document.getElementById('menuSurface');
+  const close=document.getElementById('closeMenu');
+  let open=false,hover=false,raf=0;
+
+  const commit=()=>{
+    raf=0;
+    frame.dataset.open=String(open);
+    frame.dataset.hover=String(hover&&!open);
+    surface.setAttribute('aria-expanded',String(open));
+    surface.setAttribute('aria-label',open?'بستن منوی شناور':'باز کردن منوی شناور');
+    close.tabIndex=open?0:-1;
+  };
+  const schedule=()=>{if(!raf)raf=requestAnimationFrame(commit)};
+  const setOpen=value=>{open=Boolean(value);if(open)hover=false;schedule()};
+
+  surface.addEventListener('click',()=>setOpen(!open));
+  close.addEventListener('click',e=>{e.stopPropagation();setOpen(false);surface.focus({preventScroll:true})});
+  frame.addEventListener('pointerenter',e=>{if(e.pointerType!=='touch'&&!open){hover=true;schedule()}},{passive:true});
+  frame.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch'){hover=false;schedule()}},{passive:true});
+  surface.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&!open){hover=true;schedule()}},{passive:true});
+  surface.addEventListener('pointerup',e=>{if(e.pointerType==='touch'){hover=false;schedule()}},{passive:true});
+  surface.addEventListener('pointercancel',()=>{hover=false;schedule()},{passive:true});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&open){setOpen(false);surface.focus({preventScroll:true})}});
+  document.addEventListener('pointerdown',e=>{if(open&&!frame.contains(e.target))setOpen(false)},{passive:true});
+  commit();
+})();
+</script>
+</body>
+</html>
